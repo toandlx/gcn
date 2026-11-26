@@ -82,7 +82,18 @@
   .sheet .ph { position: absolute; border: 3px solid #355596; overflow: hidden; background: #fafafa; }
   .sheet .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .sheet .wm { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%) rotate(-18deg); font: 700 118px/1 "Segoe UI", Arial, sans-serif; color: rgba(23, 85, 168, .10); letter-spacing: 6px; white-space: nowrap; pointer-events: none; }
-  .sheet .stamp-note { position: absolute; font: italic 34px/1.2 "Times New Roman", serif; color: #6b7785; }
+  .sheet .signed { position: absolute; width: 360px; text-align: center; }
+  .sheet .signed .tick { width: 120px; height: 120px; border-radius: 50%; background: #1E7B4F; margin: 0 auto; display: grid; place-items: center; box-shadow: 0 0 0 10px rgba(30, 123, 79, .14); }
+  .sheet .signed .tick svg { width: 74px; height: 74px; }
+  .sheet .signed b { display: block; margin-top: 22px; font: 700 44px/1 "Segoe UI", Arial, sans-serif; color: #1E7B4F; letter-spacing: .5px; }
+  .sheet .qr { position: absolute; image-rendering: pixelated; image-rendering: crisp-edges; background: #fff; }
+  .sheet .qr-cap { position: absolute; text-align: center; white-space: nowrap; font-style: italic; transform: translateX(-50%); }
+  .sheet .qr { cursor: zoom-in; }
+  .qr-zoom { position: fixed; inset: 0; background: #fff; z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; }
+  .qr-zoom.open { display: flex; }
+  .qr-zoom img { image-rendering: pixelated; image-rendering: crisp-edges; width: min(88vw, 78vh); height: min(88vw, 78vh); }
+  .qr-zoom p { margin: 0; color: #17212B; font-size: 15px; text-align: center; }
+  .qr-zoom button { border: 0; border-radius: 10px; background: var(--ink); color: #fff; font: 600 15px inherit; font-family: inherit; padding: 11px 22px; cursor: pointer; }
   .rotate-hint { color: #CBD6E2; font-size: 13px; text-align: center; padding: 4px 12px 14px; }
   @media (orientation: landscape) { .rotate-hint { display: none; } }
 </style>
@@ -105,7 +116,12 @@
 <div class="sheet-wrap" id="sheetWrap" role="dialog" aria-modal="true" aria-label="Bản dựng giấy chứng nhận">
   <div class="sheet-bar"><span>Bản xác minh điện tử</span><button type="button" id="closeSheet">Đóng</button></div>
   <div class="sheet-area" id="sheetArea"><div class="sheet-scale" id="sheetScale"><div class="sheet" id="sheet"></div></div></div>
-  <div class="rotate-hint">Xoay ngang điện thoại để xem rõ hơn.</div>
+  <div class="rotate-hint">Xoay ngang điện thoại để xem rõ hơn. Chạm vào mã QR để phóng to.</div>
+</div>
+<div class="qr-zoom" id="qrZoom" role="dialog" aria-modal="true" aria-label="Mã QR quét không cần mạng">
+  <img id="qrZoomImg" alt="Mã QR quét không cần mạng">
+  <p>Mã QR quét không cần mạng: chứa đầy đủ thông tin in trên giấy chứng nhận.</p>
+  <button type="button" id="qrZoomClose">Đóng</button>
 </div>
 
 <script>
@@ -235,9 +251,30 @@
     txt(s, "TUQ. GIÁM ĐỐC", 1077, 1055.5, 14, "b");
     txt(s, "TRƯỞNG PHÒNG VT&amp;ATGT", 935.9, 1112.3, 14, "b");
     txt(s, "Nguyễn Thanh Phương", 1027.1, 1428.8, 14, "b");
-    var note = document.createElement("div"); note.className = "stamp-note";
-    note.style.cssText = "left:930px;top:1190px;width:760px;text-align:center"; note.textContent = "(Bản điện tử không có chữ ký và con dấu)";
-    s.appendChild(note);
+    // chỗ chữ ký và con dấu: dấu tích xanh "Đã ký"
+    var sg = document.createElement("div"); sg.className = "signed";
+    sg.style.cssText = "left:1065px;top:1150px";
+    sg.innerHTML = '<div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><b>Đã ký</b>';
+    s.appendChild(sg);
+    // mã QR quét không cần mạng (đúng vị trí trên giấy in)
+    var q = d.paper_qr;
+    if (q && q.png) {
+      var qi = document.createElement("img"); qi.className = "qr"; qi.alt = "Mã QR quét không cần mạng";
+      qi.src = "data:image/png;base64," + q.png;
+      qi.style.cssText = "left:" + (q.x * 100) + "px;top:" + (q.y * 100) + "px;width:" + (q.size * 100) + "px;height:" + (q.size * 100) + "px";
+      qi.addEventListener("click", function () {
+        document.getElementById("qrZoomImg").src = qi.src;
+        document.getElementById("qrZoom").classList.add("open");
+        document.getElementById("qrZoomClose").focus();
+      });
+      s.appendChild(qi);
+      if (q.caption) {
+        var cap = document.createElement("div"); cap.className = "qr-cap";
+        cap.style.cssText = "left:" + ((q.x + q.size / 2) * 100) + "px;top:" + ((q.y + q.size + 0.08) * 100) + "px;font-size:" + (8.5 * PT) + "px";
+        cap.textContent = q.caption;
+        s.appendChild(cap);
+      }
+    }
     var ph = document.createElement("div"); ph.className = "ph";
     ph.style.cssText = "left:120.1px;top:184.9px;width:237.8px;height:306.7px";
     if (d.photo) ph.innerHTML = '<img alt="" src="data:image/jpeg;base64,' + d.photo + '">';
@@ -257,6 +294,9 @@
     fitSheet();
     document.getElementById("closeSheet").focus();
   }
+  document.getElementById("qrZoomClose").addEventListener("click", function () {
+    document.getElementById("qrZoom").classList.remove("open");
+  });
   document.getElementById("closeSheet").addEventListener("click", function () {
     document.getElementById("sheetWrap").classList.remove("open");
   });
