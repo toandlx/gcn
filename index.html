@@ -247,13 +247,14 @@
     txt(s, "Đã hoàn thành khóa tập huấn giáo viên dạy thực hành lái xe ô tô hạng " + esc(d.training_class), 169.7, 842.8, 14);
     txt(s, "Từ ngày " + esc(d.begin) + " đến ngày " + esc(d.end) + ".", 169.7, 899.6, 14);
     txt(s, "Số GCN: " + esc(d.cert), 168.8, 998.7, 13);
-    txt(s, "Bắc Ninh, ngày " + day + " tháng " + month + " năm " + esc(year), 943.2, 998.7, 14, "i");
-    txt(s, "TUQ. GIÁM ĐỐC", 1077, 1055.5, 14, "b");
-    txt(s, "TRƯỞNG PHÒNG VT&amp;ATGT", 935.9, 1112.3, 14, "b");
-    txt(s, "Nguyễn Thanh Phương", 1027.1, 1428.8, 14, "b");
+    var sdx = (d.paper_qr && d.paper_qr.sign_dx ? d.paper_qr.sign_dx : 0) * 100;
+    txt(s, "Bắc Ninh, ngày " + day + " tháng " + month + " năm " + esc(year), 943.2 + sdx, 998.7, 14, "i");
+    txt(s, "TUQ. GIÁM ĐỐC", 1077 + sdx, 1055.5, 14, "b");
+    txt(s, "TRƯỞNG PHÒNG VT&amp;ATGT", 935.9 + sdx, 1112.3, 14, "b");
+    txt(s, "Nguyễn Thanh Phương", 1027.1 + sdx, 1428.8, 14, "b");
     // chỗ chữ ký và con dấu: dấu tích xanh "Đã ký"
     var sg = document.createElement("div"); sg.className = "signed";
-    sg.style.cssText = "left:1065px;top:1150px";
+    sg.style.cssText = "left:" + (1065 + sdx) + "px;top:1150px";
     sg.innerHTML = '<div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><b>Đã ký</b>';
     s.appendChild(sg);
     // mã QR quét không cần mạng (đúng vị trí trên giấy in)
